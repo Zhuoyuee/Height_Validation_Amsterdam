@@ -32,6 +32,26 @@ def calculate_height_stats(cell_heights, building_height):
     )
     return stats
 
+def generate_cell_centers_and_heights(cropped_data, transform):
+    raster_height, raster_width = cropped_data.shape
+    cell_centers_and_heights = []
+
+    # Loop over the rows and columns of the raster to get the center points and heights
+    for row in range(raster_height):
+        for col in range(raster_width):
+            x, y = rasterio.transform.xy(transform, row, col, offset='center')
+            height = cropped_data[row, col]  # Get the height value from the raster
+            cell_centers_and_heights.append((Point(x, y), height))  # Store center point and height
+
+    return cell_centers_and_heights
+
+# Function to build an R-tree spatial index for fast lookups
+def build_spatial_index(cell_centers_and_heights):
+    idx = index.Index()
+    for i, (point, height) in enumerate(cell_centers_and_heights):
+        idx.insert(i, (point.x, point.y, point.x, point.y))  # Insert point's bounding box into the index
+    return idx
+
 # Function to find points inside a polygon using R-tree spatial index
 def points_in_polygon(polygon, cell_centers_and_heights, spatial_idx):
     candidates = list(spatial_idx.intersection(polygon.bounds))  # Get candidate points by bounding box

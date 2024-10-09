@@ -1,6 +1,7 @@
 import geopandas as gpd
 import rasterio
 from shapely.geometry import Point, box
+from rasterio.windows import from_bounds
 import numpy as np
 
 
