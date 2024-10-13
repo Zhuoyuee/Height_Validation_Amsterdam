@@ -4,6 +4,7 @@ from rasterio.windows import from_bounds
 from shapely.geometry import Point, box
 from rtree import index
 import numpy as np
+import pandas as pd
 
 # Define the Stats class to store statistics
 class Stats:
@@ -59,7 +60,7 @@ def points_in_polygon(polygon, cell_centers_and_heights, spatial_idx):
     return points_within_polygon
 
 # Function to process each building and calculate statistics for points inside the polygon
-def process_buildings(cropped_raster_data, cropped_vector_data, transform):
+def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodata_value=None, output_csv_path='building_stats.csv'):
     # Generate cell centers and heights from the cropped raster
     cell_centers_and_heights = generate_cell_centers_and_heights(cropped_raster_data, transform)
 
@@ -71,28 +72,62 @@ def process_buildings(cropped_raster_data, cropped_vector_data, transform):
 
     # Lists to store differences for overall performance
     all_diffs = []
+    height_diffs = []
+
+
+    # Find the correct height column
+    height_column_names = ['height', 'Height', 'heights', 'Heights', 'building heights', 'Building heights',
+                           'building_height', 'Building_height', 'building_heights', 'Building_heights']
+    found_column = None
+    for column_name in height_column_names:
+        if column_name in cropped_vector_data.columns:
+            found_column = column_name
+            break
+
+    if found_column is None:
+        raise KeyError("No column representing building height found in the data.")
+
+    csv_data = []
 
     # Loop through each building polygon in the vector file
     for idx, building in cropped_vector_data.iterrows():
         building_polygon = building.geometry
-        building_height = building['height']  # Assuming 'height' is the column name
+        building_height = building[found_column]  # Use the found column
 
         # Find the cell centers inside the building polygon
         points_in_poly = points_in_polygon(building_polygon, cell_centers_and_heights, spatial_idx)
 
-        # Collect heights for the points within the polygon
-        cell_heights = [height for point, height in points_in_poly]
+        # Collect heights for the points within the polygon, filtering out nodata and extremely large values
+        cell_heights = [height for point, height in points_in_poly
+                        if (nodata_value is None or height != nodata_value) and height < 1e6]
 
-        # Calculate stats if there are any points in the polygon
+        # Calculate stats if there are any valid points in the polygon
         if cell_heights:
             stats = calculate_height_stats(cell_heights, building_height)
-            building_stats[building['id']] = stats  # Use building ID as key
+            # Use 'id' if available, otherwise use the index as a unique key
+            building_id = building['id'] if 'id' in building else idx
+            building_stats[building_id] = stats
 
             # Append the difference to the overall performance list
             all_diffs.append(stats.avg_diff)
+            csv_data.append(
+                [building_id, stats.max_val, stats.min_val, stats.avg_val, stats.stddev_val, stats.num_points,
+                 stats.avg_diff])
+            height_diffs.append(stats.avg_diff)
+        else:
+            # If no points are found, use NaN or zero for differences
+            height_diffs.append(np.nan)
+            csv_data.append([building_id, np.nan, np.nan, np.nan, np.nan, 0, np.nan])
 
     # Calculate overall performance
     avg_diff = np.mean(all_diffs) if all_diffs else 0
     stddev_diff = np.std(all_diffs) if all_diffs else 0
 
-    return building_stats, avg_diff, stddev_diff
+    df = pd.DataFrame(csv_data,
+                      columns=['Building ID', 'Max Height', 'Min Height', 'Avg Height', 'Stddev Height', 'Num Points',
+                               'Avg Height Diff'])
+    df.to_csv(output_csv_path, index=False)
+
+    cropped_vector_data['height_difference'] = height_diffs
+
+    return building_stats, avg_diff, stddev_diff, cropped_vector_data
