@@ -2,11 +2,11 @@ from crop_bbx import create_2km_bbox, crop_raster, crop_vector
 from processing import process_buildings
 
 def main():
-    vector_path = r'C:\Users\www\WRI-cif\Validation_height\F-UTGLOBUS_Ams.gpkg'
+    vector_path = r'C:\Users\www\WRI-cif\F_Eubucco_28992.gpkg'
     raster_path = r'C:\Users\www\WRI-cif\Validation_height\DSM_2023.TIF'
 
-    output_csv_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\result_UTGLOBUS.csv'
-    output_vector_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\cropped_vector_with_height_diff.gpkg'
+    output_csv_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\result_Eubucco.csv'
+    output_vector_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\Eubucco_vector_updated.gpkg'
     # Example coordinates for the center of the bounding box (EPSG:28992 - Amersfoort / RD New)
     example_coordinates = (121764.46, 484845.95)
 
