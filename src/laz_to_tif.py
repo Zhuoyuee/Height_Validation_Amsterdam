@@ -53,6 +53,7 @@ def process_las_to_tif(las_file_path, output_tif_path, bbox, classifications=[2,
 # Example usage
 las_file_path = r'C:\Users\zhuoyue.wang\Documents\Amsterdam_data\AMS_AHN5\AMS_lidar_patch1.LAZ'
 output_tif_path = r'C:\Users\zhuoyue.wang\Documents\Amsterdam_data\AMS_AHN5\building_test1.tif'
+
 bbox = [120764.46, 483845.95, 122764.46, 485845.95]
 
 process_las_to_tif(las_file_path, output_tif_path, bbox)
