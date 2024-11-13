@@ -34,33 +34,40 @@ def filter_tree_canopy(input_path, output_path, bbx,
     unclassified_filter = (bbx_filtered['classification'] == 1)
     unclassified_points = bbx_filtered[unclassified_filter]
 
-    # Step 3: Apply NDVI Threshold if Red and NIR bands are available
-    if hasattr(unclassified_points, 'Red') and hasattr(unclassified_points, 'NIR'):
-        red = unclassified_points['Red']
-        nir = unclassified_points['NIR']
+    # Step 3: Apply Height Filter to exclude cars and low vegetation
+    height_filter = unclassified_points['z'] >= min_height
+    height_filtered_points = unclassified_points[height_filter]
+
+    # Step 4: Apply NDVI Threshold if Red and NIR bands are available
+    if hasattr(height_filtered_points, 'Red') and hasattr(height_filtered_points, 'NIR'):
+        red = height_filtered_points['Red']
+        nir = height_filtered_points['NIR']
         ndvi = (nir - red) / (nir + red)
         ndvi_filter = ndvi > ndvi_threshold
     else:
         print("NDVI data not available in point cloud.")
-        ndvi_filter = np.ones(len(unclassified_points), dtype=bool)  # No NDVI filter applied
+        ndvi_filter = np.ones(len(height_filtered_points), dtype=bool)  # No NDVI filter applied
 
     # Filter points after applying NDVI
-    ndvi_filtered_points = unclassified_points[ndvi_filter]
+    ndvi_filtered_points = height_filtered_points[ndvi_filter]
 
-    # Step 4: 2D Clustering using DBSCAN (only x and y coordinates)
-    coords_2d = np.vstack((ndvi_filtered_points.x, ndvi_filtered_points.y)).T
-    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(coords_2d)
-
-    # Step 5: Filter Clusters by Area Threshold
-    labels = clustering.labels_
-    unique_labels, counts = np.unique(labels, return_counts=True)
-
-    # Calculate minimum cluster size based on the minimum cluster area and point density
-    min_cluster_size = int(min_cluster_area * point_density)
-
-    # Keep only clusters that meet the minimum size threshold
-    large_cluster_labels = unique_labels[counts >= min_cluster_size]
-    vegetation_points = ndvi_filtered_points[np.isin(labels, large_cluster_labels)]
+    # # Downsample 10% of points before clustering
+    # coords_2d = downsample_points(np.vstack((ndvi_filtered_points.x, ndvi_filtered_points.y)).T, fraction=0.1)
+    #
+    # # Step 5: 2D Clustering using DBSCAN (only x and y coordinates)
+    # coords_2d = np.vstack((ndvi_filtered_points.x, ndvi_filtered_points.y)).T
+    # clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(coords_2d)
+    #
+    # # Step 6: Filter Clusters by Area Threshold
+    # labels = clustering.labels_
+    # unique_labels, counts = np.unique(labels, return_counts=True)
+    #
+    # # Calculate minimum cluster size based on the minimum cluster area and point density
+    # min_cluster_size = int(min_cluster_area * point_density)
+    #
+    # # Keep only clusters that meet the minimum size threshold
+    # large_cluster_labels = unique_labels[counts >= min_cluster_size]
+    # vegetation_points = ndvi_filtered_points[np.isin(labels, large_cluster_labels)]
 
     # Write the filtered points to a new LAZ file
     with laspy.open(output_path, mode='w', header=las.header) as writer:
@@ -68,14 +75,40 @@ def filter_tree_canopy(input_path, output_path, bbx,
 
     print(f"Filtered vegetation points saved to {output_path}")
 
-filter_tree_canopy(
-    input_path='input.laz',
-    output_path='vegetation_filtered.laz',
-    bbx=(155000, 155500, 463000, 463500),  # Bounding box as (min_x, max_x, min_y, max_y)
-    min_height=2.0,
-    min_cluster_area=5,
-    ndvi_threshold=0.2,
-    eps=1.5,
-    min_samples=5,
-    point_density=1.5
-)
+
+def downsample_points(points, fraction=0.1):
+    """
+    Randomly downsample points to a specified fraction.
+
+    Parameters:
+    - points: NumPy array of point coordinates.
+    - fraction: Fraction of points to retain (e.g., 0.1 for 10%).
+
+    Returns:
+    - Downsampled points as a NumPy array.
+    """
+    sample_size = int(len(points) * fraction)
+    indices = np.random.choice(len(points), size=sample_size, replace=False)
+    return points[indices]
+
+def print_scalar_fields(input_path):
+    las = laspy.read(input_path)
+    print("Available scalar fields in the LAZ file:")
+    print(list(las.point_format.dimension_names))
+
+# Run the function
+print_scalar_fields(r'C:\Users\www\WRI-cif\Amsterdam\C_25GN1.LAZ')
+
+
+#
+# filter_tree_canopy(
+#     input_path= r'C:\Users\www\WRI-cif\Amsterdam\2023_C_25GN1.LAZ',
+#     output_path= r'C:\Users\www\WRI-cif\Amsterdam\vegetation_test.LAZ',
+#     bbx=(120764.46, 122764.46, 483845.95, 485845.95),  # Bounding box as (min_x, max_x, min_y, max_y)
+#     min_height=2.0,
+#     min_cluster_area=5,
+#     ndvi_threshold=0.2,
+#     eps=1.5,
+#     min_samples=5,
+#     point_density=1.5
+# )

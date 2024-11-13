@@ -19,7 +19,7 @@ gdf_4326.to_file(output_gpkg, layer='transformed_layer', driver='GPKG')
 xmin_28992, ymin_28992, xmax_28992, ymax_28992 = 120764.46, 483845.95, 122764.46, 485845.95
 
 # Convert bounding box coordinates from EPSG:28992 to EPSG:4326
-transformer_to_4326 = Transformer.from_crs("EPSG:28992", "EPSG:4326", always_xy=True)
+transformer_to_4326 = Transformer.from_crs("EPSG:28992", "EPSG:32631", always_xy=True)
 
 xmin_4326, ymin_4326 = transformer_to_4326.transform(xmin_28992, ymin_28992)
 xmax_4326, ymax_4326 = transformer_to_4326.transform(xmax_28992, ymax_28992)
