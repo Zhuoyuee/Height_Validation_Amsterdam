@@ -72,9 +72,50 @@ def filter_points(input_laz_path, output_laz_path, min_area_m2=4, eps=1, min_sam
     print(f"Filtered {len(valid_indices)} points into {output_laz_path}")
 
 
-# Use the function
-output_path= r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test.LAZ'
-#filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\vegetation_test2.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test.LAZ', min_area_m2=4, eps=1, min_samples=50)
-filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test1.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test2.LAZ', min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
-# print(f"Filtered points count: {len(filtered_points)}")
+def merge_laz_files(input_file1, input_file2, output_file):
+    """
+    Merge two LAZ files into one.
 
+    Parameters:
+        input_file1 (str): Path to the first LAZ file.
+        input_file2 (str): Path to the second LAZ file.
+        output_file (str): Path for the output merged LAZ file.
+    """
+    # Read the first LAZ file
+    with laspy.open(input_file1) as las1:
+        points1 = las1.read()
+
+    # Read the second LAZ file
+    with laspy.open(input_file2) as las2:
+        points2 = las2.read()
+
+    # Check compatibility of the point formats
+    if points1.header.point_format != points2.header.point_format:
+        raise ValueError("Point formats of the two files do not match. Ensure both files have the same point format.")
+
+    # Merge the point data
+    merged_points = np.hstack([points1.points.array, points2.points.array])
+
+    # Create a new LAS header based on the first file's header
+    merged_header = laspy.LasHeader(point_format=points1.header.point_format, version=points1.header.version)
+
+    # Ensure scales and offsets are carried over
+    merged_scales = points1.header.scales
+    merged_offsets = points1.header.offsets
+
+    # Write the merged points to the output file
+    with laspy.open(output_file, mode="w", header=merged_header) as las_out:
+        las_out.write_points(
+            laspy.ScaleAwarePointRecord(merged_points, point_format=merged_header.point_format, scales=merged_scales,
+                                        offsets=merged_offsets))
+
+
+
+#merge_laz_files(r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p2.laz", r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p1.laz", r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_m.laz")
+# Use the function
+#output_path= r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test.LAZ'
+#filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\vegetation_test2.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test.LAZ', min_area_m2=4, eps=1, min_samples=50)
+# filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test1.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test2.LAZ', min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
+# # print(f"Filtered points count: {len(filtered_points)}")
+
+filtered_points = filter_points(r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_m.laz", r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_m_db.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
