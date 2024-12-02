@@ -6,15 +6,18 @@ import scipy
 from shapely.geometry import MultiPoint
 
 
-def filter_points(input_laz_path, output_laz_path, min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7 ):
+def filter_points(input_laz_path, output_laz_path, min_area_m2=4, eps=1.5, min_samples=20, aspect_ratio_threshold=1):
     """
-    Filters points to retain clusters that are likely trees based on area criteria.
+    Filters points to retain clusters based on DBSCAN clustering. Additional filtering by convex hull area
+    and aspect ratio is performed only if aspect_ratio_threshold is not set to 1.
 
     Parameters:
     - input_laz_path: path to the LAS/LAZ file.
-    - min_area_m2: minimum area in square meters for a cluster to be retained.
+    - output_laz_path: path where the filtered LAS/LAZ file will be saved.
+    - min_area_m2: minimum area in square meters for a cluster to be retained (if aspect_ratio_threshold is not 1).
     - eps: the maximum distance between two samples for one to be considered as in the neighborhood of the other.
     - min_samples: the number of samples in a neighborhood for a point to be considered as a core point.
+    - aspect_ratio_threshold: the maximum allowed aspect ratio to retain a cluster, default is 1 (no aspect ratio filtering).
     """
     with laspy.open(input_laz_path) as infile:
         las = infile.read()
@@ -38,27 +41,31 @@ def filter_points(input_laz_path, output_laz_path, min_area_m2=4, eps=1, min_sam
         cluster_mask = (labels == k)
         cluster_points = coords[cluster_mask]
 
-        if len(cluster_points) < 3:
-            continue  # Not enough points to form a convex hull
+        if aspect_ratio_threshold == 1:
+            # Directly add valid indices without geometric filtering
+            valid_indices.extend(np.where(cluster_mask)[0])
+        else:
+            if len(cluster_points) < 3:
+                continue  # Not enough points to form a convex hull
 
-        try:
-            # Calculate the convex hull and then the minimum bounding rectangle
-            hull = ConvexHull(cluster_points)
-            if hull.volume > min_area_m2:  # Check the convex hull area
-                multipoint = MultiPoint(cluster_points)
-                min_rectangle = multipoint.minimum_rotated_rectangle
+            try:
+                # Calculate the convex hull and then the minimum bounding rectangle
+                hull = ConvexHull(cluster_points)
+                if hull.volume > min_area_m2:  # Check the convex hull area
+                    multipoint = MultiPoint(cluster_points)
+                    min_rectangle = multipoint.minimum_rotated_rectangle
 
-                # Calculate the aspect ratio of the minimum bounding rectangle
-                x, y = min_rectangle.exterior.coords.xy
-                edge_length = [np.linalg.norm(np.array([x[i], y[i]]) - np.array([x[i + 1], y[i + 1]])) for i in range(len(x) - 1)]
-                length, width = max(edge_length), min(edge_length)
-                aspect_ratio = length / width
+                    # Calculate the aspect ratio of the minimum bounding rectangle
+                    x, y = min_rectangle.exterior.coords.xy
+                    edge_length = [np.linalg.norm(np.array([x[i], y[i]]) - np.array([x[i + 1], y[i + 1]])) for i in range(len(x) - 1)]
+                    length, width = max(edge_length), min(edge_length)
+                    aspect_ratio = length / width
 
-                if aspect_ratio <= aspect_ratio_threshold:
-                    valid_indices.extend(np.where(cluster_mask)[0])
+                    if aspect_ratio <= aspect_ratio_threshold:
+                        valid_indices.extend(np.where(cluster_mask)[0])
 
-        except scipy.spatial.qhull.QhullError:
-            continue  # Skip clusters that cannot form a valid convex hull
+            except scipy.spatial.qhull.QhullError:
+                continue  # Skip clusters that cannot form a valid convex hull
 
     # Ensure indices are unique before writing
     valid_indices = list(set(valid_indices))  # Remove any duplicates
@@ -118,4 +125,6 @@ def merge_laz_files(input_file1, input_file2, output_file):
 # filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test1.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test2.LAZ', min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
 # # print(f"Filtered points count: {len(filtered_points)}")
 
-filtered_points = filter_points(r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_m.laz", r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_m_db.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
+filter_points(r"https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/tree_aoi2_m.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", min_area_m2=4, eps=1.5, min_samples=15, aspect_ratio_threshold=1)
+filtered_points = filter_points(r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db2.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
+print(f"Filtered points count: {len(filtered_points)}")
