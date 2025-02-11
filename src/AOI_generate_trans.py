@@ -47,5 +47,5 @@ def reproject_geopackage(input_geopackage, output_geopackage, target_crs="EPSG:2
 
     return gdf_reprojected
 
-reproject_geopackage(r'C:\Users\www\WRI-cif\GLOBAL_COM\UT_Amsterdam.gpkg', r'C:\Users\www\WRI-cif\GLOBAL_COM\UT_Amsterdam_28992.gpkg', target_crs="EPSG:28992")
+reproject_geopackage(r'C:\Users\www\WRI-cif\AOI_2_utm.gpkg', r'C:\Users\www\WRI-cif\aoi2_28992.gpkg', target_crs="EPSG:28992")
 # [120764.45790837877, 485845.9530135797, 122764.4639352827, 487845.9552846286]
