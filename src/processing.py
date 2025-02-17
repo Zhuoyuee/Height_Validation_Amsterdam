@@ -60,7 +60,7 @@ def points_in_polygon(polygon, cell_centers_and_heights, spatial_idx):
     return points_within_polygon
 
 # Function to process each building and calculate statistics for points inside the polygon
-def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodata_value=None, output_csv_path='building_stats.csv'):
+def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodata_value=None, output_csv_path='building_stats.csv', updated_vector_path = 'building_height_updated.gpkg'):
     # Generate cell centers and heights from the cropped raster
     cell_centers_and_heights = generate_cell_centers_and_heights(cropped_raster_data, transform)
 
@@ -129,5 +129,7 @@ def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodat
     df.to_csv(output_csv_path, index=False)
 
     cropped_vector_data['height_difference'] = height_diffs
+
+    cropped_vector_data.to_file(updated_vector_path, driver='GPKG')
 
     return building_stats, avg_diff, stddev_diff, cropped_vector_data

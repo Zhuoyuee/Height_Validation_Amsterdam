@@ -14,6 +14,25 @@ def create_2km_bbox(center_x, center_y):
     return box(xmin, ymin, xmax, ymax)
 
 
+def get_bbx(input_aoi_vector):
+    '''
+
+    :param input_aoi_vector: can be both geojson or geopackage
+    :return: the bounding box
+    '''
+
+    # Load the vector file into a GeoDataFrame
+    gdf = gpd.read_file(input_aoi_vector)
+
+    # Compute the total bounding box of all features in the dataset
+    total_bounds = gdf.total_bounds  # Returns (minx, miny, maxx, maxy)
+    xmin, ymin, xmax, ymax = total_bounds
+
+    # Create a bounding box geometry from these coordinates
+    bbox = box(xmin, ymin, xmax, ymax)
+
+    return bbox
+
 # Function to crop the raster to the bounding box
 def crop_raster(raster_path, bbox):
     # Open the raster file
@@ -51,6 +70,7 @@ def crop_vector(vector_path, bbox):
     clipped_gdf = gpd.clip(gdf, bbox)
 
     return clipped_gdf
+
 
 
 #example_coordinates = 121764.46,484845.95
