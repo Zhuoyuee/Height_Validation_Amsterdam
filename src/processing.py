@@ -34,14 +34,20 @@ def calculate_height_stats(cell_heights, building_height):
     return stats
 
 def generate_cell_centers_and_heights(cropped_data, transform):
-    raster_height, raster_width = cropped_data.shape
+    # Check if the raster data is multi-band and select the first band
+    if cropped_data.ndim == 3:
+        data = cropped_data[0]  # Use the first band
+    else:
+        data = cropped_data  # It's already a single-band data
+
+    raster_height, raster_width = data.shape
     cell_centers_and_heights = []
 
     # Loop over the rows and columns of the raster to get the center points and heights
     for row in range(raster_height):
         for col in range(raster_width):
             x, y = rasterio.transform.xy(transform, row, col, offset='center')
-            height = cropped_data[row, col]  # Get the height value from the raster
+            height = data[row, col]  # Get the height value from the raster
             cell_centers_and_heights.append((Point(x, y), height))  # Store center point and height
 
     return cell_centers_and_heights

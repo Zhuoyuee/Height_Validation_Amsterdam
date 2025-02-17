@@ -5,12 +5,12 @@ def main():
     '''
     input path from s3
     '''
-    vector_path = r'C:\Users\www\WRI-cif\F_Eubucco_28992.gpkg'
-    raster_path = r'C:\Users\www\WRI-cif\Validation_height\DSM_2023.TIF'
-    aoi_path = ''
+    vector_path = 'https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/Building_height_validation/UTGLOBUS_Amsterdam.gpkg'
+    raster_path = r'https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/Lidar_and_derived_data/DSM_2023_patch1.TIF'
+    aoi_path = r'https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/aoi1_data/AOI_l.gpkg'
 
-    output_csv_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\result_Eubucco.csv'
-    output_vector_path = r'C:\Users\www\PycharmProjects\Height_Ams\data\Eubucco_vector_updated.gpkg'
+    output_csv_path = r'C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Height_validation\AMS_UTGLOBUS.csv'
+    output_vector_path = r'C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Height_validation\AMS_UTGLOBUS.GPKG'
 
     # preprocessing
     cropped_raster, transform, nodata_value, cropped_vector = preprocessing(aoi_path, raster_path, vector_path)

@@ -65,3 +65,7 @@ def preprocessing(input_aoi_vector, dsm_raster_path, building_height_vector_path
     clipped_gdf = reproject_crop_vector(building_height_vector_path, bbx, crs)
 
     return cropped_raster, new_transform, nodata, clipped_gdf
+
+#preprocessing('https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/aoi1_data/AOI_l.gpkg',
+# 'https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/Lidar_and_derived_data/DSM_2023_patch1.TIF',
+# 'https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/Building_height_validation/UTGLOBUS_Amsterdam.gpkg')
