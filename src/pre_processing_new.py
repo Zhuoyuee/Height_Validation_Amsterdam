@@ -3,6 +3,7 @@ import rasterio
 from rasterio.windows import from_bounds
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from shapely.geometry import box
+from rasterio.crs import CRS
 
 def get_bbx_and_crs(input_aoi_vector):
     '''
@@ -20,27 +21,42 @@ def get_bbx_and_crs(input_aoi_vector):
 
 def reproject_crop_raster(raster_path, bbx, target_crs):
     with rasterio.open(raster_path) as src:
-        # Calculate the transform, width, and height for the reprojected raster
-        transform, width, height = calculate_default_transform(
-            src.crs, target_crs, src.width, src.height, *src.bounds)
+        src_crs = src.crs
+        if not src_crs:
+            src_crs = CRS.from_epsg(7415)  # Assuming 7415 is the EPSG you're starting from, adjust as necessary
 
-        # Set up metadata for the new raster
-        profile = src.profile
-        profile.update({
-            'crs': target_crs,
-            'transform': transform,
-            'width': width,
-            'height': height
-        })
+        target_crs = CRS.from_epsg(28992)  # Ensure using CRS object
 
-        # Prepare a window for the cropping area based on the bounding box
-        window = from_bounds(*bbx, transform)
+        # Check if the source CRS matches the target CRS
+        if src_crs == target_crs:
+            print("Source CRS matches the target CRS. No reprojection needed.")
+            # Calculate the window without changing the CRS
+            window = from_bounds(*bbx, src.transform)
+            cropped_data = src.read(window=window, resampling=Resampling.nearest)
+            new_transform = src.window_transform(window)
+            return cropped_data, new_transform, src.nodata
+        else:
+            # Calculate the transform, width, and height for the reprojected raster
+            transform, width, height = calculate_default_transform(
+                src_crs, target_crs, src.width, src.height, *src.bounds)
 
-        # Reproject and read the data within the window
-        cropped_data = src.read(window=window, resampling=Resampling.nearest)
-        new_transform = src.window_transform(window)
+            # Set up metadata for the new raster
+            profile = src.profile
+            profile.update({
+                'crs': target_crs,
+                'transform': transform,
+                'width': width,
+                'height': height
+            })
 
-        return cropped_data, new_transform, src.nodata
+            # Prepare a window for the cropping area based on the bounding box
+            window = from_bounds(*bbx, transform)
+
+            # Reproject and read the data within the window
+            cropped_data = src.read(window=window, resampling=Resampling.nearest)
+            new_transform = src.window_transform(window)
+
+            return cropped_data, new_transform, src.nodata
 
 
 def reproject_crop_vector(vector_path, bbx, target_crs):
@@ -64,6 +80,7 @@ def preprocessing(input_aoi_vector, dsm_raster_path, building_height_vector_path
     cropped_raster, new_transform, nodata = reproject_crop_raster(dsm_raster_path, bbx, crs)
     clipped_gdf = reproject_crop_vector(building_height_vector_path, bbx, crs)
 
+    print(new_transform, nodata)
     return cropped_raster, new_transform, nodata, clipped_gdf
 
 #preprocessing('https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/aoi1_data/AOI_l.gpkg',

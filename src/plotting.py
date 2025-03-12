@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv(r'C:\Users\www\PycharmProjects\Height_Ams\data\result_3dglobpf.csv')
+df = pd.read_csv(r'C:\Users\zhuoyue.wang\Documents\Building_height_Monterrey\MTY_UTGLOBUS_diff.csv')
 
 bins = np.arange(-26.6, 9.85 + 0.76, 0.76)
 
@@ -16,7 +16,7 @@ bin_counts = df['binned'].value_counts(sort=False)
 plt.figure(figsize=(10, 6))
 bin_counts.plot(kind='bar', color='skyblue')
 
-plt.title('Distribution of Building Height Differences for 3DGloBPF', fontsize=14)
+plt.title('Distribution of Building Height Differences for UTGLOBUS in aoi Monterrey', fontsize=14)
 plt.xlabel('Height Difference (meters)', fontsize=12)
 plt.ylabel('Number of Buildings', fontsize=12)
 plt.xticks(rotation=45)

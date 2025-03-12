@@ -97,6 +97,9 @@ def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodat
 
     # Loop through each building polygon in the vector file
     for idx, building in cropped_vector_data.iterrows():
+        # Ensure 'building_id' is defined at the beginning of the loop
+        building_id = building.get('id', idx)  # Safe assignment using .get() with default fallback to index
+
         building_polygon = building.geometry
         building_height = building[found_column]  # Use the found column
 
@@ -110,32 +113,31 @@ def process_buildings(cropped_raster_data, cropped_vector_data, transform, nodat
         # Calculate stats if there are any valid points in the polygon
         if cell_heights:
             stats = calculate_height_stats(cell_heights, building_height)
-            # Use 'id' if available, otherwise use the index as a unique key
-            building_id = building['id'] if 'id' in building else idx
             building_stats[building_id] = stats
 
-            # Append the difference to the overall performance list
+            # Append the difference to the overall performance list along with the original height
             all_diffs.append(stats.avg_diff)
-            csv_data.append(
-                [building_id, stats.max_val, stats.min_val, stats.avg_val, stats.stddev_val, stats.num_points,
-                 stats.avg_diff])
+            csv_data.append([
+                building_id, stats.max_val, stats.min_val, stats.avg_val, stats.stddev_val, stats.num_points,
+                stats.avg_diff, building_height  # Append the original building height here
+            ])
             height_diffs.append(stats.avg_diff)
         else:
             # If no points are found, use NaN or zero for differences
             height_diffs.append(np.nan)
-            csv_data.append([building_id, np.nan, np.nan, np.nan, np.nan, 0, np.nan])
+            csv_data.append([building_id, np.nan, np.nan, np.nan, np.nan, 0, np.nan, building_height])
 
     # Calculate overall performance
     avg_diff = np.mean(all_diffs) if all_diffs else 0
     stddev_diff = np.std(all_diffs) if all_diffs else 0
 
+    # Create DataFrame with an additional column for the original building height
     df = pd.DataFrame(csv_data,
                       columns=['Building ID', 'Max Height', 'Min Height', 'Avg Height', 'Stddev Height', 'Num Points',
-                               'Avg Height Diff'])
+                               'Avg Height Diff', 'Polygon Height'])  # Added 'Polygon Height'
     df.to_csv(output_csv_path, index=False)
 
     cropped_vector_data['height_difference'] = height_diffs
-
     cropped_vector_data.to_file(updated_vector_path, driver='GPKG')
 
     return building_stats, avg_diff, stddev_diff, cropped_vector_data
