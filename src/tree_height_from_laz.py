@@ -5,7 +5,7 @@ import rasterio
 from rasterio.transform import from_origin
 
 
-def filter_tree_canopy(input_path, output_path, bbx =[120764.45790837877, 485845.9530135797, 122764.4639352827, 487845.9552846286], amplitude_threshold = 6.7,
+def filter_tree_canopy(input_path, output_path, bbx, amplitude_threshold = 6.7,
                        min_height=2.0, reflectance_threshold=0.3, min_cluster_area=5,
                        eps=1.5, min_samples=5, point_density=1.5):
     """
@@ -127,28 +127,30 @@ def filter_tree_canopy(input_path, output_path, bbx =[120764.45790837877, 485845
 
 
 
-# filter_tree_canopy(
-#     input_path= r'C:\Users\www\WRI-cif\Amsterdam\C_25GN1.LAZ',
-#     output_path= r'C:\Users\www\WRI-cif\Amsterdam\vegetation_test2.LAZ',
-#     bbx=(120764.46, 122764.46, 483845.95, 485845.95),  # Bounding box as (min_x, max_x, min_y, max_y)
-#     amplitude_threshold = 6.7,
-#     min_height=2.0,
-#     min_cluster_area=5,
-#     reflectance_threshold=0.3,
-#     eps=1.5,
-#     min_samples=5,
-#     point_density=1.5
-# )
+filter_tree_canopy(
+    input_path= r'C:\Users\www\WRI-cif\Amsterdam\AHN4_C_25EZ1.LAZ',
+    output_path= r'C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_1.LAZ',
+    bbx=(120764.45790837877, 122764.4639352827, 485845.9530135797, 487845.9552846286),  # Bounding box as (min_x, max_x, min_y, max_y)
+    amplitude_threshold = 6.7,
+    min_height=2.0,
+    min_cluster_area=5,
+    reflectance_threshold=0.3,
+    eps=1.5,
+    min_samples=5,
+    point_density=1.5
+)
 
-tasks = [
-    {
-        "las_file_path": r'C:\Users\www\WRI-cif\Amsterdam\C_25GN1.LAZ',
-        "output_tif_path": r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p1.laz",
-    },
-    {
-        "las_file_path": r"C:\Users\www\WRI-cif\Amsterdam\AHN4_C_25EZ1.LAZ",
-        "output_tif_path": r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p2.laz",
-    },
+
+# 120764.45790837877, 485845.9530135797, 122764.4639352827, 487845.9552846286
+# tasks = [
+#     {
+#         "las_file_path": r'C:\Users\www\WRI-cif\Amsterdam\C_25GN1.LAZ',
+#         "output_tif_path": r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p1.laz",
+#     },
+#     {
+#         "las_file_path": r"C:\Users\www\WRI-cif\Amsterdam\AHN4_C_25EZ1.LAZ",
+#         "output_tif_path": r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\tree_aoi2_p2.laz",
+#     },
     # {
     #     "las_file_path": r"C:\Users\www\WRI-cif\Amsterdam\2023_C_25GN1.LAZ",
     #     "output_tif_path": r"C:jk\Users\www\WRI-cif\Amsterdam\Laz_result\DEM_building_aoi2_p1.tif",
@@ -159,19 +161,19 @@ tasks = [
     #     "output_tif_path": r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\DEM_building_aoi2_p2.tif",
     #     "classifications": [2, 6],
     # }
-]
+# ]
 
-def process_task(task):
-    return filter_tree_canopy(
-        task["las_file_path"],
-        task["output_tif_path"],
-    )
-
-
-if __name__ == "__main__":
-    with ProcessPoolExecutor() as executor:
-        # Run tasks in parallel using the helper function
-        results = list(executor.map(process_task, tasks))
+# def process_task(task):
+#     return filter_tree_canopy(
+#         task["las_file_path"],
+#         task["output_tif_path"],
+#     )
+#
+#
+# if __name__ == "__main__":
+#     with ProcessPoolExecutor() as executor:
+#         # Run tasks in parallel using the helper function
+#         results = list(executor.map(process_task, tasks))
 #
 #
 # # Grid dimensions

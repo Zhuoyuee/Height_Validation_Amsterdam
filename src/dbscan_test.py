@@ -125,6 +125,10 @@ def merge_laz_files(input_file1, input_file2, output_file):
 # filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test1.LAZ', r'C:\Users\www\WRI-cif\Amsterdam\dbscan_test2.LAZ', min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
 # # print(f"Filtered points count: {len(filtered_points)}")
 
-filter_points(r"https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/tree_aoi2_m.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", min_area_m2=4, eps=1.5, min_samples=15, aspect_ratio_threshold=1)
-filtered_points = filter_points(r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db2.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
-print(f"Filtered points count: {len(filtered_points)}")
+# <<<<<<< HEAD
+# filter_points(r"https://wri-cities-heat.s3.us-east-1.amazonaws.com/NLD-Amsterdam/tree_aoi2_m.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", min_area_m2=4, eps=1.5, min_samples=15, aspect_ratio_threshold=1)
+# filtered_points = filter_points(r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db1.laz", r"C:\Users\zhuoyue.wang\Documents\Amsterdam_data\Solweig_AMS\Tile002\tree_aoi2_db2.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
+# print(f"Filtered points count: {len(filtered_points)}")
+# =======
+# filtered_points = filter_points(r'C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_tree_m.LAZ', r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_tree_db.laz", min_area_m2=4, eps=1, min_samples=50, aspect_ratio_threshold=7)
+# >>>>>>> 5c2d983 (align raster)

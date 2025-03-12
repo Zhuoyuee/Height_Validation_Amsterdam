@@ -1,6 +1,8 @@
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 import numpy as np
+from rasterio.crs import CRS
+from rasterio.env import Env
 
 
 def resample_raster(input_path, output_path, new_resolution=(1, 1)):
@@ -65,7 +67,9 @@ def align_data(model_path, reference_meta, aligned_model_path):
 
     return aligned_model, output_meta
 
-# gt_resampled, gt_meta = resample_raster(gt_path, gt_resampled_output)
-#
-# # Align model data to the ground truth
-# model_aligned, model_meta = align_data(model_path, gt_meta, model_aligned_output)
+# Now correctly passing a file path for the metadata
+model_aligned, model_meta = align_data(
+    r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_local_dem_building.tif",
+    r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_tree_32631.tif",
+    r"C:\Users\www\WRI-cif\Amsterdam\Laz_result\aoi2\aoi2_local_dem_building_utm.tif"
+)
